@@ -17,11 +17,12 @@
 # ## Impact of covid on prescribing in March
 #
 # - [Largest absolute increase in items](#abs)
-# - [percentage diff of high volume items](#per)
-# - [antibiotics](#abx)
-# - [overall trends](#overall)
+# - [Percentage diff of high volume items](#per)
+# - [Antibiotics](#abx)
+# - [Overall trends](#overall)
 
 import pandas as pd
+import os as os
 import numpy as np
 from ebmdatalab import bq, maps, charts
 
@@ -58,14 +59,15 @@ ORDER BY
 
   '''
 
-df_chemical = bq.cached_read(sql, csv_path='df_chemical.csv')
+df_chemical = bq.cached_read(sql, csv_path=os.path.join('..','data','df_chemical.csv'))
 df_chemical.head(5)
-# -
 
+# +
 df_march_diff = df_chemical.copy()
 df_march_diff["increase"] = (df_march_diff.items_2020 - df_march_diff.items_2019).fillna(0)
 df_march_diff["per_diff"] = 100*((df_march_diff.items_2020 - df_march_diff.items_2019)/df_march_diff.items_2019)
 df_march_diff.head(5)
+# -
 
 
 # ## Largest absolute increases in items <a id='abs'></a>
@@ -79,11 +81,13 @@ high_volume_diff.head(26)
 
 # ## Antimicrobial Stewardship <a id='abx'></a>
 
+# +
 df_abx_a = df_march_diff[df_march_diff["chemical_code"].str.startswith("050")].sort_values("increase", ascending=False)
 df_abx = df_abx_a.loc[(df_abx_a["items_2020"] >= 5)]
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_colwidth', None)
 df_abx
+# -
 
 
 # ## Overall Trends <a id='overall'></a>
@@ -107,10 +111,17 @@ ORDER BY
 
   '''
 
-df_overall = bq.cached_read(sql2, csv_path='df_overall.csv')
+df_overall = bq.cached_read(sql2, csv_path=os.path.join('..','data','df_overall.csv'))
 df_overall.head(5)
 # -
 
 df_overall.groupby("month").sum().plot(kind='line', title="Trens in items and cost per month since 2015")
+
+df_march_2020 = df_overall.loc[(df_overall["month"] == "2020-03-01 00:00:00+00:00")]
+df_march_2019 = df_overall.loc[(df_overall["month"] == "2019-03-01 00:00:00+00:00")]
+
+df_march_2020
+
+df_march_2019
 
 
